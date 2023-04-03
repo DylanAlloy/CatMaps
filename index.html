@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>CatMap - Share Your Stray Cat Sightings!</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.7/handlebars.min.js"></script>
+    <script>
+      // Get user's current location
+      navigator.geolocation.getCurrentPosition(showPosition);
+
+      function showPosition(position) {
+        // Get user's latitude and longitude
+        var latitude = position.coords.latitude;
+        var longitude = position.coords.longitude;
+
+        // Display map with user's current location
+        var map = new google.maps.Map(document.getElementById("map"), {
+          center: { lat: latitude, lng: longitude },
+          zoom: 12,
+        });
+      }
+    </script>
+  </head>
+  <body>
+    <h1>CatMap - Share Your Stray Cat Sightings!</h1>
+    <p>Upload photos of stray cats and their locations using the QR code link on the tag of their collar!</p>
+    
+    <div id="map" style="height: 500px;"></div>
+
+    <form action="/upload" method="POST" enctype="multipart/form-data">
+      <label for="photo">Upload a photo:</label>
+      <input type="file" id="photo" name="photo">
+      <button type="submit">Submit</button>
+    </form>
+
+    <div id="previous-photos">
+      <h2>Previous Photos</h2>
+      <ul>
+        {{#each photos}}
+        <li>
+          <img src="{{this.imagePath}}" alt="Stray cat sighting">
+          <p>Location: {{this.latitude}}, {{this.longitude}}</p>
+          <p>Date: {{this.date}}</p>
+        </li>
+        {{/each}}
+      </ul>
+    </div>
+
+    <script id="previous-photos-template" type="text/x-handlebars-template">
+      {{#each photos}}
+      <li>
+        <img src="{{this.imagePath}}" alt="Stray cat sighting">
+        <p>Location: {{this.latitude}}, {{this.longitude}}</p>
+        <p>Date: {{this.date}}</p>
+      </li>
+      {{/each}}
+    </script>
+
+    <script>
+      // Get previous photos from database and display on page
+      $.ajax({
+        type: "GET",
+        url: "/photos",
+        success: function (data) {
+          var template = Handlebars.compile($("#previous-photos-template").html());
+          $("#previous-photos ul").html(template({ photos: data }));
+        },
+      });
+    </script>
+
+    <p>Don't let these adorable strays go unnoticed - add your sightings to the map today!</p>
+  </body>
+</html>
